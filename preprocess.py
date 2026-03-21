@@ -2,7 +2,7 @@ import pandas as pd
 import seaborn as sns
 import matplotlib.pyplot as plt
 
-sensor = pd.read_csv("sensor_data_rows.csv")
+sensor = pd.read_csv("Data/sensor_data_rows.csv")
 
 sensor["timestamp"] = pd.to_datetime(sensor["timestamp"])
 
