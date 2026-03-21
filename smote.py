@@ -2,7 +2,7 @@ import pandas as pd
 from sklearn.model_selection import train_test_split
 from imblearn.over_sampling import SMOTE
 
-df = pd.read_csv('sensor_labeled.csv')
+df = pd.read_csv('Processed/sensor_labeled.csv')
 
 X = df.drop(columns=['timestamp', 'label'])
 y = df['label']

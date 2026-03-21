@@ -1,7 +1,7 @@
 import pandas as pd
 import numpy as np
 
-sensor = pd.read_csv("sensor_clean.csv")
+sensor = pd.read_csv("Processed/sensor_clean.csv")
 
 sensor = sensor.sort_values(by=["month", "day", "hour"])
 

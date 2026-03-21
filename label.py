@@ -1,6 +1,6 @@
 import pandas as pd
 
-sensor = pd.read_csv("sensor_featured.csv")
+sensor = pd.read_csv("Processed/sensor_featured.csv")
 irrigation = pd.read_csv("Data/irrigation_log_rows.csv")
 
 sensor["timestamp"] = pd.to_datetime(sensor["timestamp"])

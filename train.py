@@ -5,8 +5,8 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 import joblib
 
-train = pd.read_csv('train_smote.csv')
-test = pd.read_csv('test.csv')
+train = pd.read_csv('Processed/train_smote.csv')
+test = pd.read_csv('Processed/test.csv')
 
 X_train = train.drop(columns=['label'])
 y_train = train['label']
@@ -35,7 +35,7 @@ result = pd.DataFrame({
 
 result.to_csv('prediction_result.csv', index=False)
 
-joblib.dump(model, 'irrigation_model.pkl')
+joblib.dump(model, 'Models/irrigation_model.pkl')
 
 acc = accuracy_score(y_test, y_pred)
 pre = precision_score(y_test, y_pred)

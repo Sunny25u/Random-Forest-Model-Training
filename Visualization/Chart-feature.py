@@ -2,7 +2,7 @@ import pandas as pd
 import seaborn as sns
 import matplotlib.pyplot as plt
 
-df = pd.read_csv("sensor_featured.csv")
+df = pd.read_csv("../Processed/sensor_featured.csv")
 corr = df.corr(numeric_only=True)
 plt.figure(figsize=(10,8))
 sns.heatmap(

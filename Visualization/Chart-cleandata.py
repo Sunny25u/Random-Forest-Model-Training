@@ -2,7 +2,7 @@ import pandas as pd
 import seaborn as sns
 import matplotlib.pyplot as plt
 
-sensor = pd.read_csv("sensor_clean.csv")
+sensor = pd.read_csv("../Processed/sensor_clean.csv")
 """
 print(sensor.shape)
 print(sensor.head())
