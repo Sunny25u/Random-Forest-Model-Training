@@ -48,6 +48,7 @@ print(f"Precision: {pre:.4f}")
 print(f"Recall   : {rec:.4f}")
 print(f"F1-score : {f1:.4f}")
 
+"""
 print("\n===== CONFUSION MATRIX =====")
 print(confusion_matrix(y_test, y_pred))
 
@@ -75,3 +76,4 @@ plt.title("Feature Importance")
 plt.tight_layout()
 plt.savefig("feature_importance.png", dpi=300)
 plt.show()
+"""

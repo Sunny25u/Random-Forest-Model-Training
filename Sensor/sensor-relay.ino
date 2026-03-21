@@ -20,16 +20,22 @@ const char* supabase_key = "sb_publishable_cKeaOmTblGHGYLsmikzTnw_0JPn6Ssg";
 
 DHT dht(DHTPIN, DHTTYPE);
 
-// ========= CONFIG =========
-int PUMP_DURATION = 10000; // 8 giây
+// CONFIG 
+int PUMP_DURATION = 8000; 
 
-// =========================
+// TIME
+unsigned long lastSendTime = 0;
+const unsigned long SEND_INTERVAL = 15 * 60 * 1000; // 15 phút
+
+unsigned long lastCheckTime = 0;
+const unsigned long CHECK_INTERVAL = 5000; //5 giây
+
 void setup() {
   Serial.begin(115200);
   delay(1000);
 
   pinMode(RELAY_PIN, OUTPUT);
-  digitalWrite(RELAY_PIN, LOW); // tắt bơm
+  digitalWrite(RELAY_PIN, LOW); // tắt 
 
   dht.begin();
 
@@ -38,22 +44,38 @@ void setup() {
   // ===== WIFI =====
   WiFi.begin(ssid, password);
   Serial.print("Dang ket noi WiFi");
-  int retry = 0;
 
-  while (WiFi.status() != WL_CONNECTED && retry < 20) {
+  while (WiFi.status() != WL_CONNECTED) {
     delay(500);
     Serial.print(".");
-    retry++;
-  }
-
-  if (WiFi.status() != WL_CONNECTED) {
-    Serial.println("\n[ERROR] WiFi fail");
-    return;
   }
 
   Serial.println("\n[OK] WiFi Connected");
 
-  // ===== 1. DOC CAM BIEN =====
+  sendSensorData();
+}
+
+// =========================
+void loop() {
+
+  unsigned long currentMillis = millis();
+
+  if (currentMillis - lastSendTime >= SEND_INTERVAL) {
+    lastSendTime = currentMillis;
+    sendSensorData();
+  }
+
+  if (currentMillis - lastCheckTime >= CHECK_INTERVAL) {
+    lastCheckTime = currentMillis;
+    checkCommand();
+  }
+}
+
+
+void sendSensorData() {
+
+  Serial.println("\n--- DOC CAM BIEN ---");
+
   float air_temp = 0, air_hum = 0;
 
   for (int i = 0; i < 3; i++) {
@@ -76,10 +98,10 @@ void setup() {
   Serial.printf(">> KK: %.1f*C | %.1f%%\n", air_temp, air_hum);
   Serial.printf(">> Dat: %d%%\n", soilPercent);
 
-  // ===== 2. GUI SENSOR =====
   if (!isnan(air_hum) && air_hum > 0) {
     HTTPClient http;
     http.begin(sensor_url);
+
     http.addHeader("Content-Type", "application/json");
     http.addHeader("apikey", supabase_key);
     http.addHeader("Authorization", String("Bearer ") + supabase_key);
@@ -99,20 +121,14 @@ void setup() {
 
     http.end();
   }
-
-  // ===== 3. CHECK COMMAND =====
-  checkCommand();
-
-  Serial.println("--- NGU 15 PHUT ---");
-}
-
-// =========================
-void loop() {
-  delay(15 * 60 * 1000);
-  ESP.restart();
 }
 
 void checkCommand() {
+
+  if (WiFi.status() != WL_CONNECTED) {
+    Serial.println("WiFi lost!");
+    return;
+  }
 
   HTTPClient http;
 
@@ -139,30 +155,32 @@ void checkCommand() {
     return;
   }
 
-  Serial.println("Command found!");
+  Serial.println("\n Command found!");
 
-  // ===== LẤY ID =====
+
   int idStart = payload.indexOf("id\":\"") + 5;
   int idEnd = payload.indexOf("\"", idStart);
 
   if (idStart < 5 || idEnd < 0) {
+    Serial.println("Parse ID error");
     http.end();
     return;
   }
 
   String cmd_id = payload.substring(idStart, idEnd);
 
-  // ===== BẬT BƠM =====
+
   if (payload.indexOf("PUMP_ON") > 0) {
     runPump();
+    markExecuted(cmd_id);
   }
-
-  // ===== UPDATE EXECUTED =====
-  markExecuted(cmd_id);
 
   http.end();
 }
+
+
 void runPump() {
+
   Serial.println("PUMP ON");
 
   digitalWrite(RELAY_PIN, HIGH);
@@ -171,6 +189,7 @@ void runPump() {
 
   Serial.println("PUMP OFF");
 }
+
 void markExecuted(String id) {
 
   HTTPClient http;
@@ -178,15 +197,18 @@ void markExecuted(String id) {
   String url = String(command_url) + "?id=eq." + id;
 
   http.begin(url);
+
   http.addHeader("Content-Type", "application/json");
   http.addHeader("apikey", supabase_key);
   http.addHeader("Authorization", String("Bearer ") + supabase_key);
+  http.addHeader("Prefer", "return=minimal");
 
+  
   String body = "{\"status\":\"EXECUTED\"}";
 
   int code = http.PATCH(body);
 
-  Serial.print("Update: ");
+  Serial.print("Update status: ");
   Serial.println(code);
 
   http.end();

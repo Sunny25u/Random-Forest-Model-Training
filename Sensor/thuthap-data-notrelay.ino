@@ -10,8 +10,8 @@ const char* supabase_url = "https://plmqvmveaqsoxnjydcmw.supabase.co/rest/v1/sen
 const char* supabase_key = "sb_publishable_cKeaOmTblGHGYLsmikzTnw_0JPn6Ssg";
 
 // --- CẤU HÌNH CHÂN CẮM ---
-#define SOIL_PIN 34    // Chân Aout cảm biến đất nối D34
-#define DHTPIN 5       // Chân Out DHT11 nối D5
+#define SOIL_PIN 34    
+#define DHTPIN 5       
 #define DHTTYPE DHT11
 
 DHT dht(DHTPIN, DHTTYPE);
@@ -48,7 +48,7 @@ void setup() {
     }
     Serial.printf(">> KK: %.1f*C | %.1f%%\n", air_temp, air_hum);
 
-    // 3. Đọc cảm biến độ ẩm đất (Điện dung)
+    // 3. Đọc cảm biến độ ẩm đất 
     long sum = 0;
     for(int i=0; i<15; i++) { 
       sum += analogRead(SOIL_PIN); 
@@ -56,7 +56,6 @@ void setup() {
     }
     float avgAnalog = sum / 15.0;
 
-    // Hiệu chuẩn: 3200 (Khô) -> 1500 (Ướt). Thay đổi số này theo thực tế đo được.
     int soilPercent = map(avgAnalog, 3200, 1500, 0, 100); 
     soilPercent = constrain(soilPercent, 0, 100);
     Serial.printf(">> Dat: %d%% (Analog: %.0f)\n", soilPercent, avgAnalog);
@@ -95,11 +94,6 @@ void setup() {
 }
 
 void loop() {
-  // Nghỉ 15 phút (15 * 60 * 1000 ms)
-  // Trong lúc này ESP32 vẫn tiêu thụ điện ~80mA, giúp sạc dự phòng không bị tắt
   delay(15 * 60 * 1000); 
-
-  // Khởi động lại chip để chạy lại từ đầu hàm setup()
-  // Việc restart giúp hệ thống chạy "sạch" hơn, tránh lỗi WiFi lâu ngày
   ESP.restart(); 
 }
