@@ -5,7 +5,7 @@ from sklearn.metrics import roc_curve, roc_auc_score, precision_recall_curve, av
 
 try:
     test = pd.read_csv('../Processed/test.csv')
-    model = joblib.load('../Models/irrigation_model.pkl')
+    model = joblib.load('../Models/irrigation_model_1.pkl')
     print("--- Đã load dữ liệu và mô hình thành công ---")
 except FileNotFoundError as e:
     print(f"Lỗi: Không tìm thấy file. Vui lòng kiểm tra lại đường dẫn. Chi tiết: {e}")

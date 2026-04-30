@@ -1,79 +1,77 @@
 import pandas as pd
 from sklearn.ensemble import RandomForestClassifier
-from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score, confusion_matrix, classification_report
+from sklearn.metrics import classification_report, confusion_matrix
 import matplotlib.pyplot as plt
 import seaborn as sns
 import joblib
 
-train = pd.read_csv('Processed/train_smote.csv')
+# ===== LOAD =====
+train = pd.read_csv('Processed/train.csv')
 test = pd.read_csv('Processed/test.csv')
 
-X_train = train.drop(columns=['label'])
+# ===== CHỌN FEATURE CHUẨN =====
+features = [
+    "soil_moisture",
+    "air_temperature",
+    "air_humidity",
+    "VPD",
+    "hour_sin",
+    "hour_cos",
+    "soil_diff_1",
+    "soil_diff_3",
+    "growth_stage"
+]
+
+X_train = train[features]
 y_train = train['label']
 
-X_test = test.drop(columns=['label'])
+X_test = test[features]
 y_test = test['label']
 
-cols_to_drop = ['id', 'timestamp', 'created_at']
-X_train = X_train.drop(columns=cols_to_drop, errors='ignore')
-X_test = X_test.drop(columns=cols_to_drop, errors='ignore')
-
+# ===== MODEL =====
 model = RandomForestClassifier(
-    n_estimators=200,
-    max_depth=10,
-    random_state=42
+    n_estimators=300,
+    max_depth=12,
+    random_state=42,
+    min_samples_leaf=1,
+    class_weight={0: 1, 1: 4}
 )
 
 model.fit(X_train, y_train)
 
-y_pred = model.predict(X_test)
+# ===== PREDICT =====
+y_prob = model.predict_proba(X_test)[:, 1]
+y_pred = (y_prob > 0.35).astype(int)
 
-result = pd.DataFrame({
-    'y_true': y_test,
-    'y_pred': y_pred
-})
-
-result.to_csv('prediction_result.csv', index=False)
-
-joblib.dump(model, 'Models/irrigation_model.pkl')
-
-acc = accuracy_score(y_test, y_pred)
-pre = precision_score(y_test, y_pred)
-rec = recall_score(y_test, y_pred)
-f1 = f1_score(y_test, y_pred)
-
-print("===== EVALUATION METRICS =====")
-print(f"Accuracy : {acc:.4f}")
-print(f"Precision: {pre:.4f}")
-print(f"Recall   : {rec:.4f}")
-print(f"F1-score : {f1:.4f}")
-
-"""
-print("\n===== CONFUSION MATRIX =====")
-print(confusion_matrix(y_test, y_pred))
+# ===== EVALUATE =====
+print("===== CONFUSION MATRIX =====")
+cm = confusion_matrix(y_test, y_pred)
+print(cm)
 
 print("\n===== CLASSIFICATION REPORT =====")
 print(classification_report(y_test, y_pred))
 
-cm = confusion_matrix(y_test, y_pred)
-
-plt.figure(figsize=(5,4))
+# ===== PLOT =====
+plt.figure(figsize=(5,4), dpi=150)
 sns.heatmap(cm, annot=True, fmt='d')
-plt.xlabel("Predicted")
-plt.ylabel("Actual")
-plt.title("Confusion Matrix")
+
+plt.xlabel("Dự đoán")
+plt.ylabel("Thực tế")
+
 plt.tight_layout()
-plt.savefig("confusion_matrix.png", dpi=300)
+plt.savefig("confusion_matrix.png", dpi=400)
 plt.show()
 
-importances = model.feature_importances_
-features = X_train.columns
+# ===== FEATURE IMPORTANCE (RẤT NÊN CÓ) =====
+importance = pd.DataFrame({
+    "feature": features,
+    "importance": model.feature_importances_
+}).sort_values(by="importance", ascending=False)
 
-plt.figure(figsize=(8,5))
-plt.barh(features, importances)
-plt.gca().invert_yaxis()
-plt.title("Feature Importance")
-plt.tight_layout()
-plt.savefig("feature_importance.png", dpi=300)
-plt.show()
-"""
+print("\n===== FEATURE IMPORTANCE =====")
+print(importance)
+
+# ===== SAVE MODEL =====
+#joblib.dump(model, 'Models/irrigation_model_1.pkl')
+
+print("Hoàn thành")
