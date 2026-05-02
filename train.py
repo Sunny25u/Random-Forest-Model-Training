@@ -5,11 +5,9 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 import joblib
 
-# ===== LOAD =====
 train = pd.read_csv('Processed/train.csv')
 test = pd.read_csv('Processed/test.csv')
 
-# ===== CHỌN FEATURE CHUẨN =====
 features = [
     "soil_moisture",
     "air_temperature",
@@ -28,7 +26,7 @@ y_train = train['label']
 X_test = test[features]
 y_test = test['label']
 
-# ===== MODEL =====
+
 model = RandomForestClassifier(
     n_estimators=300,
     max_depth=12,
@@ -39,11 +37,11 @@ model = RandomForestClassifier(
 
 model.fit(X_train, y_train)
 
-# ===== PREDICT =====
+
 y_prob = model.predict_proba(X_test)[:, 1]
 y_pred = (y_prob > 0.35).astype(int)
 
-# ===== EVALUATE =====
+
 print("===== CONFUSION MATRIX =====")
 cm = confusion_matrix(y_test, y_pred)
 print(cm)
@@ -51,7 +49,7 @@ print(cm)
 print("\n===== CLASSIFICATION REPORT =====")
 print(classification_report(y_test, y_pred))
 
-# ===== PLOT =====
+
 plt.figure(figsize=(5,4), dpi=150)
 sns.heatmap(cm, annot=True, fmt='d')
 
@@ -62,7 +60,7 @@ plt.tight_layout()
 plt.savefig("confusion_matrix.png", dpi=400)
 plt.show()
 
-# ===== FEATURE IMPORTANCE (RẤT NÊN CÓ) =====
+
 importance = pd.DataFrame({
     "feature": features,
     "importance": model.feature_importances_
@@ -71,7 +69,7 @@ importance = pd.DataFrame({
 print("\n===== FEATURE IMPORTANCE =====")
 print(importance)
 
-# ===== SAVE MODEL =====
-#joblib.dump(model, 'Models/irrigation_model_1.pkl')
+
+joblib.dump(model, 'Models/irrigation_model_1.pkl')
 
 print("Hoàn thành")
